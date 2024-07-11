@@ -38,7 +38,7 @@ for subreddit in subreddits:
             'content': cleaned,
             'timestamp': submission.created_utc,
             'subreddit': subreddit,
-            # 'ticker': tickers_in_post
+            'ticker': found_tickers
         }
         collection.insert_one(post_data)
 
