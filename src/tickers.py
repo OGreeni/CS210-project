@@ -5,7 +5,7 @@ import re
 def find_tickers(string):
     tickers_found = []
 
-    df = pd.read_csv('../us_symbols.csv')
+    df = pd.read_csv('us_symbols.csv')
     tickers = df['ticker']
 
     for ticker in tickers:

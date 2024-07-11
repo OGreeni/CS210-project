@@ -1,6 +1,6 @@
 import praw
-import cleaning
-import tickers
+import src.cleaning as cleaning
+import src.tickers as tickers
 from dotenv import load_dotenv
 import os
 
@@ -25,4 +25,4 @@ for subreddit in subreddits:
         cleaned = cleaning.remove_urls(submission.selftext)
         found_tickers.extend(tickers.find_tickers(cleaned))
 
-print(found_tickers)
+print("TICKERS FOUND: ", found_tickers)
