@@ -9,7 +9,8 @@ def find_tickers(string):
     tickers = df['ticker']
 
     for ticker in tickers:
-        # TODO: refine this search
+        # TODO: refine this search. Some tickers are also actual words (i.e., 'A' and 'AM'), so we need to work
+        #  around that
         if re.search(f' {ticker} ', string):
             tickers_found.append(ticker)
 
