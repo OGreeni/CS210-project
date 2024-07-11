@@ -1,5 +1,6 @@
 import praw
 import cleaning
+import tickers
 from dotenv import load_dotenv
 import os
 
@@ -19,5 +20,6 @@ reddit = praw.Reddit(
 for subreddit in subreddits:
     # Fetch submissions for each subreddit
     for submission in reddit.subreddit(subreddit).hot(limit=20):
-        print(submission.title)
-        print(submission.selftext)
+        cleaned = cleaning.remove_urls(submission.selftext)
+        found = tickers.find_tickers(cleaned)
+        print(found)
