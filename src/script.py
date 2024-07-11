@@ -17,9 +17,12 @@ reddit = praw.Reddit(
     user_agent=os.getenv('USER_AGENT')
 )
 
+found_tickers = []
+
 for subreddit in subreddits:
     # Fetch submissions for each subreddit
     for submission in reddit.subreddit(subreddit).hot(limit=20):
         cleaned = cleaning.remove_urls(submission.selftext)
-        found = tickers.find_tickers(cleaned)
-        print(found)
+        found_tickers.extend(tickers.find_tickers(cleaned))
+
+print(found_tickers)

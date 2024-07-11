@@ -10,7 +10,7 @@ def find_tickers(string):
 
     for ticker in tickers:
         # TODO: refine this search
-        if re.search(f' {ticker} ', string, re.IGNORECASE):
+        if re.search(f' {ticker} ', string):
             tickers_found.append(ticker)
 
     return tickers_found
