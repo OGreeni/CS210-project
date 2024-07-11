@@ -1,4 +1,6 @@
 import praw
+import pymongo
+
 import src.cleaning as cleaning
 import src.tickers as tickers
 from dotenv import load_dotenv
@@ -17,8 +19,8 @@ reddit = praw.Reddit(
     user_agent=os.getenv('USER_AGENT')
 )
 
-#Set up MongoDB connection
-client = pymongo.MongoClient(os.getenv('mongodb+srv://leonbash43:81emlCxprEQVGe3c@cluster0.1dqqkmt.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0'))
+# Set up MongoDB connection
+client = pymongo.MongoClient(os.getenv('MONGODB_URI'))
 db = client.reddit_data
 collection = db.posts
 
@@ -30,13 +32,13 @@ for subreddit in subreddits:
         cleaned = cleaning.remove_usernames(cleaning.remove_urls(submission.selftext))
         found_tickers.extend(tickers.find_tickers(cleaned))
 
-        #Store the data of the posts
+        # Store the data of the posts
         post_data = {
             'title': submission.title,
             'content': cleaned,
             'timestamp': submission.created_utc,
             'subreddit': subreddit,
-            'ticker': tickers_in_post
+            # 'ticker': tickers_in_post
         }
         collection.insert_one(post_data)
 
