@@ -2,6 +2,14 @@
 
 ## Getting started
 
+### Installing dependencies
+
+To install Python dependencies, run
+
+```shell
+pip install -r requirements.txt
+```
+
 ### Environment variables
 
 To configure the project, create a `.env` file in the project's root. Copy the contents of `.env.example` and update
