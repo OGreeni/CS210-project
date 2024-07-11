@@ -17,6 +17,11 @@ reddit = praw.Reddit(
     user_agent=os.getenv('USER_AGENT')
 )
 
+#Set up MongoDB connection
+client = pymongo.MongoClient(os.getenv('mongodb+srv://leonbash43:81emlCxprEQVGe3c@cluster0.1dqqkmt.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0'))
+db = client.reddit_data
+collection = db.posts
+
 found_tickers = []
 
 for subreddit in subreddits:
@@ -24,5 +29,15 @@ for subreddit in subreddits:
     for submission in reddit.subreddit(subreddit).hot(limit=20):
         cleaned = cleaning.remove_usernames(cleaning.remove_urls(submission.selftext))
         found_tickers.extend(tickers.find_tickers(cleaned))
+
+        #Store the data of the posts
+        post_data = {
+            'title': submission.title,
+            'content': cleaned,
+            'timestamp': submission.created_utc,
+            'subreddit': subreddit,
+            'ticker': tickers_in_post
+        }
+        collection.insert_one(post_data)
 
 print("TICKERS FOUND: ", found_tickers)
