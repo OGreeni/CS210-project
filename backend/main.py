@@ -38,15 +38,16 @@ for subreddit in subreddits:
     # Fetch submissions for each subreddit
     for submission in reddit.subreddit(subreddit).hot(limit=10):
         cleaned = cleaning.remove_usernames(cleaning.remove_urls(submission.selftext))
-        submission_tickers = tickers.find_tickers(cleaned) #Stores tickers found in each cleaned submission
+        submission_tickers = tickers.find_tickers(cleaned)  # Stores tickers found in each cleaned submission
         found_tickers.extend(tickers.find_tickers(cleaned))
 
         # Calculate sentiment scores (including compound, pos, neu, neg) of the cleaned data
         sentiment_scores = obj.polarity_scores(cleaned)
 
         # Use compound score to determine whether the content is positive, negative, or neutral
-        sentiment = 'positive' if sentiment_scores['compound'] >= 0.1 else 'negative' if sentiment_scores['compound'] <= -0.1 else 'neutral'
-       
+        sentiment = 'positive' if sentiment_scores['compound'] >= 0.1 else 'negative' if sentiment_scores[
+                                                                                             'compound'] <= -0.1 else 'neutral'
+
         # Append the sentiment scores for each ticker found in the submission
         for ticker in submission_tickers:
             sentiment_dict[ticker].append(sentiment_scores)
@@ -73,7 +74,6 @@ for ticker, sentiments in sentiment_dict.items():
     }
     average_sentiment_scores[ticker] = average_sentiment
 
-
 average_sentiment_collection = db.average_sentiments
 
 # Store the averages in a MongoDB collection
@@ -85,4 +85,3 @@ for ticker, average_sentiment in average_sentiment_scores.items():
 
 print("TICKERS FOUND: ", found_tickers)
 print("AVERAGE SENTIMENTS OF EACH TICKER: ", average_sentiment_scores)
-
