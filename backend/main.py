@@ -84,5 +84,4 @@ for ticker, average_sentiment in average_sentiment_scores.items():
         'average_sentiment': average_sentiment
     })
 
-print("TICKERS FOUND: ", found_tickers)
 print("AVERAGE SENTIMENTS OF EACH TICKER: ", average_sentiment_scores)
