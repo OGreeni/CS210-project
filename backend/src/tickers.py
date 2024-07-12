@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 import re
 
@@ -5,7 +6,11 @@ import re
 def find_tickers(string):
     tickers_found = []
 
-    df = pd.read_csv('us_symbols.csv')
+    current_dir = os.path.dirname(__file__)
+
+    csv_path = os.path.join(current_dir, '../us_symbols.csv')
+
+    df = pd.read_csv(csv_path)
     tickers = df['ticker']
 
     for ticker in tickers:
