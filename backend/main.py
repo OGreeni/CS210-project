@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 import os
 from collections import defaultdict
 import numpy as np
+import requests
 
 # Load env variables from .env
 load_dotenv()
@@ -85,3 +86,9 @@ for ticker, average_sentiment in average_sentiment_scores.items():
     })
 
 print("AVERAGE SENTIMENTS OF EACH TICKER: ", average_sentiment_scores)
+
+# Retrieves 10 posts from starting date to end date for a particular subreddit for a particular ticker
+def retrieve_post(subreddit, ticker, start, end, size=10):
+    url = f"https://api.pushshift.io/reddit/search/submission/?q={ticker}&subreddit={subreddit}&after={start}&before={end}&size={size}"
+    response = requests.get(url)
+    return response.json()['data']
