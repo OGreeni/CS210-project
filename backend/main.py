@@ -93,7 +93,6 @@ print("AVERAGE SENTIMENTS OF EACH TICKER: ", average_sentiment_scores)
 def get_posts(subreddit, ticker, start, end, size):
     url = f"https://api.pushshift.io/reddit/search/submission/?q={ticker}&subreddit={subreddit}&after={start}&before={end}&size={size}"
     response = requests.get(url)
-    #return response.text, nothing prints
     return response.json()
 
 
