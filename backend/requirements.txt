@@ -1,4 +1,8 @@
 pandas~=2.2.2
 praw~=7.7.1
-python-dotenv~=1.0.1
 pymongo~=4.8.0
+numpy~=2.0.0
+python-dotenv~=1.0.1
+requests~=2.32.3
+vaderSentiment~=3.3.2
+matplotlib~=3.9.1

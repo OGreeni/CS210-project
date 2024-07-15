@@ -48,7 +48,8 @@ for subreddit in subreddits:
         sentiment_scores = obj.polarity_scores(cleaned)
 
         # Use compound score to determine whether the content is positive, negative, or neutral
-        sentiment = 'positive' if sentiment_scores['compound'] >= 0.1 else 'negative' if sentiment_scores['compound'] <= -0.1 else 'neutral'
+        sentiment = 'positive' if sentiment_scores['compound'] >= 0.1 else 'negative' if sentiment_scores[
+                                                                                             'compound'] <= -0.1 else 'neutral'
 
         # Append the sentiment scores for each ticker found in the submission
         for ticker in submission_tickers:
@@ -89,6 +90,7 @@ for ticker, average_sentiment in average_sentiment_scores.items():
 
 print("AVERAGE SENTIMENTS OF EACH TICKER: ", average_sentiment_scores)
 
+
 # Retrieves posts from starting date to end date for a particular subreddit for a particular ticker
 def get_posts(subreddit, ticker, start, end, size):
     url = f"https://api.pushshift.io/reddit/search/submission/?q={ticker}&subreddit={subreddit}&after={start}&before={end}&size={size}"
@@ -115,7 +117,8 @@ def calculate_sentiment_score(subreddits, tickers):
 
             for subreddit in subreddits:
                 # Call get_posts to retrieve posts for this day
-                daily_posts = get_posts(subreddit, ticker, int(current.timestamp()), int(current_plus_one_day.timestamp()), 5)
+                daily_posts = get_posts(subreddit, ticker, int(current.timestamp()),
+                                        int(current_plus_one_day.timestamp()), 5)
 
                 for post in daily_posts:
                     # Clean each post
@@ -130,16 +133,18 @@ def calculate_sentiment_score(subreddits, tickers):
 
             # Calculate average daily compound sentiment score for this day
             if num_daily_posts > 0:
-                average_compound_score = sum_compound_score/num_daily_posts
+                average_compound_score = sum_compound_score / num_daily_posts
 
                 # Store date and compound score in dictionary
-                average_daily_sentiment_score[ticker].append({'date': current_plus_one_day, 'compound': average_compound_score})
+                average_daily_sentiment_score[ticker].append(
+                    {'date': current_plus_one_day, 'compound': average_compound_score})
 
             # Increment to begin calculations for the next period of one day
             current = current_plus_one_day
             current_plus_one_day = current + datetime.timedelta(1)
 
     return average_daily_sentiment_score
+
 
 adss = calculate_sentiment_score(subreddits, found_tickers)
 
