@@ -51,7 +51,7 @@ const getGroupedPosts = async (ticker: string) => {
 }
 
 const getStockPrices = async (ticker: string, groupedPosts: number[][]) => {
-    const res = await fetch(`https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${ticker}&apikey=4EB22FI4JOX5DNSF`)
+    const res = await fetch(`https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${ticker}&apikey=${process.env.AV_API_KEY}`)
     const data = await res.json();
 
     const closePrices: number[] = [];
@@ -127,7 +127,7 @@ export default async function Home() {
             </div>
             <div className="h-10"/>
             <div className="flex justify-center items-center flex-wrap">
-                {results.map(result => <div className="justify-center items-center ">
+                {results.map(result => <div className="justify-center items-center" key={result.ticker}>
                     <div className="text-center font-semibold text-xl">{result.ticker}</div>
                     <LineChartWrapper
                         series={[
