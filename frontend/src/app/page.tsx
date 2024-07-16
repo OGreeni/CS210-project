@@ -85,14 +85,37 @@ export default async function Home() {
     initConnection();
     const averageSentiments = await AverageSentiment.find({}).sort({'averageSentiment.count': -1}).exec();
     const promises = averageSentiments.map(fetchData);
-    const rowData = await Promise.all(promises)
+    const rowData = await Promise.all(promises);
 
-    const groupedPosts = await getGroupedPosts('TSLA');
-    const stockPrices = await getStockPrices('TSLA', groupedPosts.groupedPosts.reverse())
 
+    const topAverageSentiments = averageSentiments.slice(0, 5);
+
+    const results: any[] = [];
+
+    await Promise.all(topAverageSentiments.map(async (sentiment) => {
+        // Fetch data for the current sentiment
+        const rowData = await fetchData(sentiment);
+
+        // Get grouped posts for the current ticker
+        const groupedPosts = await getGroupedPosts(sentiment.ticker);
+
+        // Get stock prices for the current ticker using grouped posts
+        const stockPrices = await getStockPrices(sentiment.ticker, groupedPosts.groupedPosts.reverse());
+
+        // Push result object to results array
+        results.push({
+            ticker: sentiment.ticker,
+            groupedPosts: groupedPosts,
+            stockPrices: stockPrices
+        });
+    }));
+
+    console.log(results);
     return (
         <main>
+            <div className="h-10"/>
             <h1 className="text-4xl font-semibold text-center">Reddit Stocks Trend Analysis</h1>
+            <div className="h-10"/>
             <div
                 className="ag-theme-alpine"
                 style={{height: '600px', maxWidth: '1000px', marginInline: 'auto'}}
@@ -102,37 +125,43 @@ export default async function Home() {
                     columnDefs={columnDefs}
                 />
             </div>
-            <LineChartWrapper
-                series={[
-                    {
-                        data: groupedPosts.reducedGroupedPosts.reverse().map(group => group.reduce((a, b) => a + b) / group.length),
-                        label: 'Sentiment'
-                    },
-                    {
-                        data: groupedPosts.reducedGroupedPosts.reverse().map(group => group.length),
-                        label: 'Occurrences',
-                    },
-                    {
-                        data: stockPrices.map((stockPrice, i) => {
-                            if (i === 0) {
-                                return 0;
-                            } else {
-                                const prevPrice = stockPrices[i - 1];
-                                const percentChange = ((stockPrice - prevPrice) / prevPrice) * 100;
-                                return percentChange;
+            <div className="h-10"/>
+            <div className="flex justify-center items-center flex-wrap">
+                {results.map(result => <div className="justify-center items-center ">
+                    <div className="text-center font-semibold text-xl">{result.ticker}</div>
+                    <LineChartWrapper
+                        series={[
+                            {
+                                data: result.groupedPosts.reducedGroupedPosts.reverse().map((group: any) => group.reduce((a: number, b: number) => a + b) / group.length),
+                                label: 'Sentiment'
+                            },
+                            {
+                                data: result.groupedPosts.reducedGroupedPosts.reverse().map((group: any) => group.length),
+                                label: 'Occurrences',
+                            },
+                            {
+                                data: result.stockPrices.map((stockPrice: number, i: number) => {
+                                    if (i === 0) {
+                                        return 0;
+                                    } else {
+                                        const prevPrice = result.stockPrices[i - 1];
+                                        const percentChange = ((stockPrice - prevPrice) / prevPrice) * 100;
+                                        return percentChange;
+                                    }
+                                }),
+                                label: '% change in price'
                             }
-                        }),
-                        label: '% change in price'
-                    }
-                ]}
-                width={500}
-                height={300}
-                xAxis={[{
-                    label: 'Days',
-                    data: Array.from(groupedPosts.reducedGroupedPosts.keys()),
-                    tickNumber: Array.from(groupedPosts.reducedGroupedPosts.keys()).length
-                }]}
-            />
+                        ]}
+                        width={500}
+                        height={300}
+                        xAxis={[{
+                            label: 'Days',
+                            data: Array.from(result.groupedPosts.reducedGroupedPosts.keys()),
+                            tickNumber: Array.from(result.groupedPosts.reducedGroupedPosts.keys()).length
+                        }]}
+                    />
+                </div>)}
+            </div>
         </main>
     );
 }
