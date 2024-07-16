@@ -1,4 +1,12 @@
-/** @type {import('next').NextConfig} */
-const nextConfig = {};
-
-export default nextConfig;
+const nextConfig = {
+    experimental: {
+        esmExternals: "loose", // <-- add this
+        serverComponentsExternalPackages: ["mongoose"]
+    },
+    webpack: (config) => {
+        config.experiments = {
+            topLevelAwait: true
+        };
+        return config;
+    },
+}
