@@ -44,7 +44,7 @@ found_tickers = []
 
 for subreddit in subreddits:
     # Fetch submissions for each subreddit
-    for submission in reddit.subreddit(subreddit).hot(limit=10):
+    for submission in reddit.subreddit(subreddit).hot(limit=40):
         cleaned = cleaning.remove_usernames(cleaning.remove_urls(submission.selftext))
         submission_tickers = tickers.find_tickers(cleaned)  # Stores tickers found in each cleaned submission
 

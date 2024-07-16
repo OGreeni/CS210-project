@@ -15,10 +15,10 @@ def find_tickers(string):
 
     for ticker in tickers:
         # Note: only searching for tickers containing 4 letters.
-        if len(ticker) != 4:
+        if len(str(ticker)) != 4:
             continue
 
-        if re.search(str(ticker), string):
+        if re.search(f' {ticker} ', string) or re.search(f' {"$" + str(ticker)} ', string):
             tickers_found.append(ticker)
 
     return tickers_found
