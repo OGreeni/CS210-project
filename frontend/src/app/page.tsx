@@ -40,11 +40,44 @@ const getGroupedPosts = async (ticker: string) => {
             groupedPosts[daysDifference] = [];
         }
 
-        // Push sentiment or any other value from the post into the corresponding bin
+        // Push sentiment from the post into the corresponding bin
         groupedPosts[daysDifference].push(post.sentiment);
     });
 
-    return groupedPosts.filter((group) => group !== undefined).reverse();
+    return {
+        groupedPosts: groupedPosts,
+        reducedGroupedPosts: groupedPosts.filter((group) => group !== undefined)
+    };
+}
+
+const getStockPrices = async (ticker: string, groupedPosts: number[][]) => {
+    const res = await fetch(`https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${ticker}&apikey=4EB22FI4JOX5DNSF`)
+    const data = await res.json();
+
+    const closePrices: number[] = [];
+
+    for (let i = 0; i < groupedPosts.length; i++) {
+        if (!groupedPosts[i]) {
+            continue;
+        }
+
+        // Calculate target date
+        const today = new Date();
+        const targetDate = new Date(today);
+        targetDate.setDate(today.getDate() - i);
+
+        // Format target date to match API data key format (YYYY-MM-DD)
+        const targetDateStr = targetDate.toISOString().slice(0, 10);
+
+        if (data['Time Series (Daily)'][targetDateStr]) {
+            const stockData = data['Time Series (Daily)'][targetDateStr];
+            closePrices.push(parseFloat(stockData['4. close']));
+        } else {
+            closePrices.push(closePrices[closePrices.length - 1]);
+        }
+    }
+
+    return closePrices;
 }
 
 
@@ -55,7 +88,7 @@ export default async function Home() {
     const rowData = await Promise.all(promises)
 
     const groupedPosts = await getGroupedPosts('TSLA');
-    console.log(groupedPosts)
+    const stockPrices = await getStockPrices('TSLA', groupedPosts.groupedPosts.reverse())
 
     return (
         <main>
@@ -67,25 +100,37 @@ export default async function Home() {
                 <AgGridReactWrapper
                     rowData={rowData}
                     columnDefs={columnDefs}
-                ></AgGridReactWrapper>
+                />
             </div>
             <LineChartWrapper
                 series={[
                     {
-                        data: groupedPosts.map(group => group.reduce((a, b) => a + b) / group.length),
+                        data: groupedPosts.reducedGroupedPosts.reverse().map(group => group.reduce((a, b) => a + b) / group.length),
                         label: 'Sentiment'
                     },
                     {
-                        data: groupedPosts.map(group => group.length),
+                        data: groupedPosts.reducedGroupedPosts.reverse().map(group => group.length),
                         label: 'Occurrences',
+                    },
+                    {
+                        data: stockPrices.map((stockPrice, i) => {
+                            if (i === 0) {
+                                return 0;
+                            } else {
+                                const prevPrice = stockPrices[i - 1];
+                                const percentChange = ((stockPrice - prevPrice) / prevPrice) * 100;
+                                return percentChange;
+                            }
+                        }),
+                        label: '% change in price'
                     }
                 ]}
                 width={500}
                 height={300}
                 xAxis={[{
                     label: 'Days',
-                    data: Array.from(groupedPosts.keys()),
-                    tickNumber: Array.from(groupedPosts.keys()).length
+                    data: Array.from(groupedPosts.reducedGroupedPosts.keys()),
+                    tickNumber: Array.from(groupedPosts.reducedGroupedPosts.keys()).length
                 }]}
             />
         </main>
