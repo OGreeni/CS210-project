@@ -23,7 +23,6 @@ const averageSentimentSchema = new Schema({
     }
 })
 
-// export const Post = model('posts', postSchema);
-console.log(mongoose.models)
-
+export const Post = mongoose.models.posts || model('posts', postSchema);
 export const AverageSentiment = mongoose.models.average_sentiments || model('average_sentiments', averageSentimentSchema);
+
