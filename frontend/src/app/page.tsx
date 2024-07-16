@@ -11,7 +11,7 @@ const fetchData = async (sentiment: any) => {
         ticker: sentiment.ticker,
         occurrences: sentiment.averageSentiment.count,
         'compound sentiment': sentiment.averageSentiment.compound.toFixed(3),
-        'price change 5D': `${data[0]['5D']}%`,
+        'price change 5D': `${data[0]?.['5D']}%`,
     };
 };
 
