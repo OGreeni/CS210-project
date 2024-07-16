@@ -80,15 +80,27 @@ const getStockPrices = async (ticker: string, groupedPosts: number[][]) => {
     return closePrices;
 }
 
+// Function to find unique documents based on a property
+function findUniqueByProperty(array: any, property: any) {
+    const map = new Map();
+    array.forEach((item: any) => {
+        const key = item[property];
+        if (!map.has(key)) {
+            map.set(key, item);
+        }
+    });
+    return Array.from(map.values());
+}
 
 export default async function Home() {
     initConnection();
-    const averageSentiments = await AverageSentiment.find({}).sort({'averageSentiment.count': -1}).exec();
+    const averageSentiments = findUniqueByProperty(await AverageSentiment.find({}).sort({'averageSentiment.count': -1}).exec(), 'ticker');
     const promises = averageSentiments.map(fetchData);
     const rowData = await Promise.all(promises);
 
 
     const topAverageSentiments = averageSentiments.slice(0, 5);
+    console.log(topAverageSentiments)
 
     const results: any[] = [];
 
