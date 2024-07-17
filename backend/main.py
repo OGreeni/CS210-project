@@ -38,8 +38,8 @@ posts_coll = db.posts
 avg_sentiments_coll = db.average_sentiments
 
 # Delete any existing data from previous runs
-posts_coll.drop()
-avg_sentiments_coll.drop()
+# posts_coll.drop()
+# avg_sentiments_coll.drop()
 
 # Set up default dictionary
 sentiment_dict = defaultdict(list)
@@ -51,7 +51,7 @@ found_tickers = []
 
 for subreddit in subreddits:
     # Fetch submissions for each subreddit
-    for submission in reddit.subreddit(subreddit).hot(limit=40):
+    for submission in reddit.subreddit(subreddit).hot(limit=1000):
         cleaned = cleaning.remove_usernames(cleaning.remove_urls(submission.selftext))
         submission_tickers = tickers.find_tickers(cleaned)  # Stores tickers found in each cleaned submission
 
@@ -89,6 +89,7 @@ for ticker, sentiments in sentiment_dict.items():
         'pos': np.mean([s['pos'] for s in sentiments]),
         'neu': np.mean([s['neu'] for s in sentiments]),
         'neg': np.mean([s['neg'] for s in sentiments]),
+        'count': len(sentiments)  # Number of submissions
     }
     avg_sentiments[ticker] = average_sentiment
 
@@ -96,9 +97,10 @@ for ticker, sentiments in sentiment_dict.items():
 for ticker, average_sentiment in avg_sentiments.items():
     avg_sentiments_coll.insert_one({
         'ticker': ticker,
-        'average_sentiment': average_sentiment
+        'averageSentiment': average_sentiment
     })
 
+<<<<<<< HEAD
 # Set up start and end dates
 start_date = (datetime.now() - timedelta(5)).strftime('%Y-%m-%d')
 end_date = datetime.now().strftime('%Y-%m-%d')
@@ -160,3 +162,7 @@ for ticker in tickers:
     plt.ylabel('Stock Price')
     plt.legend()
     plt.show()
+=======
+# Plot compound sentiment scores
+# for ticker, sentiments in avg_sentiments.items():
+>>>>>>> origin/main

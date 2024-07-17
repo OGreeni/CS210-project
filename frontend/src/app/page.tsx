@@ -1,113 +1,180 @@
-import Image from "next/image";
+import {LineChartWrapper} from "@/components/LineChartWrapper";
+import {initConnection, AverageSentiment, Post} from "@/services/mongodb";
+import {AgGridReactWrapper} from "@/components/AgGridReactWrapper";
 
-export default function Home() {
-  return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">src/app/page.tsx</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:size-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
-        </div>
-      </div>
+const columnDefs = [{field: "ticker"}, {field: "occurrences"}, {field: "compound sentiment"}, {field: "price change 5D"}]
 
-      <div className="relative z-[-1] flex place-items-center before:absolute before:h-[300px] before:w-full before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-full after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700 before:dark:opacity-10 after:dark:from-sky-900 after:dark:via-[#0141ff] after:dark:opacity-40 sm:before:w-[480px] sm:after:w-[240px] before:lg:h-[360px]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
+const fetchData = async (sentiment: any) => {
+    const res = await fetch(`https://financialmodelingprep.com/api/v3/stock-price-change/${sentiment.ticker}?apikey=${process.env.FMP_API_KEY}`);
+    const data = await res.json();
+    return {
+        ticker: sentiment.ticker,
+        occurrences: sentiment.averageSentiment.count,
+        'compound sentiment': sentiment.averageSentiment.compound.toFixed(3),
+        'price change 5D': `${data[0]?.['5D']}%`,
+    };
+};
 
-      <div className="mb-32 grid text-center lg:mb-0 lg:w-full lg:max-w-5xl lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Docs{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
+const getGroupedPosts = async (ticker: string) => {
+    const ONE_DAY_MS = 24 * 60 * 60 * 1000; // Number of milliseconds in a day
 
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Learn{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
+    const posts = await Post.find({tickers: {$in: [ticker]}})
+        .sort({timestamp: -1})
+        .exec();
 
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Templates{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Explore starter templates for Next.js.
-          </p>
-        </a>
+    // Get current timestamp in milliseconds
+    const currentDate = new Date().getTime();
 
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Deploy{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-balance text-sm opacity-50">
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
-    </main>
-  );
+    // Initialize an object to store bins dynamically
+    const groupedPosts: number[][] = [];
+
+    // Group posts into bins based on their timestamp
+    posts.forEach((post) => {
+        const postTimestamp = post.timestamp.getTime() * 1000;
+
+        // Calculate difference in days
+        const daysDifference = Math.floor((currentDate - postTimestamp) / ONE_DAY_MS);
+
+        // Initialize the bin array if it doesn't exist
+        if (!groupedPosts[daysDifference]) {
+            groupedPosts[daysDifference] = [];
+        }
+
+        // Push sentiment from the post into the corresponding bin
+        groupedPosts[daysDifference].push(post.sentiment);
+    });
+
+    return {
+        groupedPosts: groupedPosts,
+        reducedGroupedPosts: groupedPosts.filter((group) => group !== undefined)
+    };
 }
+
+const getStockPrices = async (ticker: string, groupedPosts: number[][]) => {
+    const res = await fetch(`https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${ticker}&apikey=${process.env.AV_API_KEY}`)
+    const data = await res.json();
+
+    const closePrices: number[] = [];
+
+    for (let i = 0; i < groupedPosts.length; i++) {
+        if (!groupedPosts[i]) {
+            continue;
+        }
+
+        // Calculate target date
+        const today = new Date();
+        const targetDate = new Date(today);
+        targetDate.setDate(today.getDate() - i);
+
+        // Format target date to match API data key format (YYYY-MM-DD)
+        const targetDateStr = targetDate.toISOString().slice(0, 10);
+
+        if (data['Time Series (Daily)'][targetDateStr]) {
+            const stockData = data['Time Series (Daily)'][targetDateStr];
+            closePrices.push(parseFloat(stockData['4. close']));
+        } else {
+            closePrices.push(closePrices[closePrices.length - 1]);
+        }
+    }
+
+    return closePrices;
+}
+
+// Function to find unique documents based on a property
+function findUniqueByProperty(array: any, property: any) {
+    const map = new Map();
+    array.forEach((item: any) => {
+        const key = item[property];
+        if (!map.has(key)) {
+            map.set(key, item);
+        }
+    });
+    return Array.from(map.values());
+}
+
+export default async function Home() {
+    initConnection();
+    const averageSentiments = findUniqueByProperty(await AverageSentiment.find({}).sort({'averageSentiment.count': -1}).exec(), 'ticker');
+    const promises = averageSentiments.map(fetchData);
+    const rowData = await Promise.all(promises);
+
+
+    const topAverageSentiments = averageSentiments.slice(0, 5);
+    console.log(topAverageSentiments)
+
+    const results: any[] = [];
+
+    await Promise.all(topAverageSentiments.map(async (sentiment) => {
+        // Fetch data for the current sentiment
+        const rowData = await fetchData(sentiment);
+
+        // Get grouped posts for the current ticker
+        const groupedPosts = await getGroupedPosts(sentiment.ticker);
+
+        // Get stock prices for the current ticker using grouped posts
+        const stockPrices = await getStockPrices(sentiment.ticker, groupedPosts.groupedPosts.reverse());
+
+        // Push result object to results array
+        results.push({
+            ticker: sentiment.ticker,
+            groupedPosts: groupedPosts,
+            stockPrices: stockPrices
+        });
+    }));
+
+    console.log(results);
+    return (
+        <main>
+            <div className="h-10"/>
+            <h1 className="text-4xl font-semibold text-center">Reddit Stocks Trend Analysis</h1>
+            <div className="h-10"/>
+            <div
+                className="ag-theme-alpine"
+                style={{height: '600px', maxWidth: '1000px', marginInline: 'auto'}}
+            >
+                <AgGridReactWrapper
+                    rowData={rowData}
+                    columnDefs={columnDefs}
+                />
+            </div>
+            <div className="h-10"/>
+            <div className="flex justify-center items-center flex-wrap">
+                {results.map(result => <div className="justify-center items-center" key={result.ticker}>
+                    <div className="text-center font-semibold text-xl">{result.ticker}</div>
+                    <LineChartWrapper
+                        series={[
+                            {
+                                data: result.groupedPosts.reducedGroupedPosts.reverse().map((group: any) => group.reduce((a: number, b: number) => a + b) / group.length),
+                                label: 'Sentiment'
+                            },
+                            {
+                                data: result.groupedPosts.reducedGroupedPosts.reverse().map((group: any) => group.length),
+                                label: 'Occurrences',
+                            },
+                            {
+                                data: result.stockPrices.map((stockPrice: number, i: number) => {
+                                    if (i === 0) {
+                                        return 0;
+                                    } else {
+                                        const prevPrice = result.stockPrices[i - 1];
+                                        const percentChange = ((stockPrice - prevPrice) / prevPrice) * 100;
+                                        return percentChange;
+                                    }
+                                }),
+                                label: '% change in price'
+                            }
+                        ]}
+                        width={500}
+                        height={300}
+                        xAxis={[{
+                            label: 'Days',
+                            data: Array.from(result.groupedPosts.reducedGroupedPosts.keys()),
+                            tickNumber: Array.from(result.groupedPosts.reducedGroupedPosts.keys()).length
+                        }]}
+                    />
+                </div>)}
+            </div>
+        </main>
+    );
+}
+
