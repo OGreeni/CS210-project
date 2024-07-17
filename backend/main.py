@@ -51,7 +51,7 @@ found_tickers = []
 
 for subreddit in subreddits:
     # Fetch submissions for each subreddit
-    for submission in reddit.subreddit(subreddit).hot(limit=1000):
+    for submission in reddit.subreddit(subreddit).hot(limit=10):
         cleaned = cleaning.remove_usernames(cleaning.remove_urls(submission.selftext))
         submission_tickers = tickers.find_tickers(cleaned)  # Stores tickers found in each cleaned submission
 
@@ -115,13 +115,13 @@ dataset = []
 for ticker, prices in stock_price.items():
     for date, row in prices.iterrows():
         date_str = date.strftime('%Y-%m-%d')
-        if date_str in avg_sentiments:
-            dataset.append([
-                ticker,
-                date,
-                avg_sentiments[ticker]['compound'],
-                row['Price']
-            ])
+        
+        dataset.append([
+            ticker,
+            date,
+            avg_sentiments[ticker]['compound'],
+            row['Close']
+        ])
 df = pd.DataFrame(dataset, columns=['ticker', 'date', 'compound', 'price'])
 
 # Set up dataset and target variable
@@ -146,11 +146,11 @@ print('Root Mean Squared Error: ' + str(rmse))
 r2 = r2_score(Y_testing_set, Y_predicted)
 print('R-squared: ' + str(r2))
 
-accuracy = predictive_model(X_testing_set, Y_testing_set)
+accuracy = predictive_model.score(X_testing_set, Y_testing_set)
 print('Accuracy: ' + str(accuracy))
 
 # Plot actual stock prices with the model's predicted stock prices for each ticker we found
-for ticker in tickers:
+for ticker in found_tickers:
     # Get the actual and predicted values of the stock prices of each ticker
     Y_testing_set_ticker = Y_testing_set[ticker]
     Y_predicted_ticker = Y_predicted[ticker]

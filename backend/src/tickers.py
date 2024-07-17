@@ -14,8 +14,8 @@ def find_tickers(string):
     tickers = df['ticker']
 
     for ticker in tickers:
-        # Note: only searching for tickers containing 4 or 3 letters.
-        if len(str(ticker)) != 4 or len(str(ticker)) != 3:
+        # Note: only searching for tickers containing 4
+        if len(str(ticker)) != 4:
             continue
 
         if re.search(f' {ticker} ', string) or re.search(f' {"$" + str(ticker)} ', string):
