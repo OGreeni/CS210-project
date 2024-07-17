@@ -129,7 +129,7 @@ X = df[['compound']]
 Y = df['price']
 
 # Split up dataset intro training and testing set, train model
-X_training_set, X_testing_set, Y_training_set, Y_testing_set = train_test_split(X, Y, 0.2, 1)
+X_training_set, X_testing_set, Y_training_set, Y_testing_set = train_test_split(X, Y, test_size=0.2, random_state=10)
 
 predictive_model = LinearRegression()
 predictive_model.fit(X_training_set, Y_training_set)
@@ -145,6 +145,9 @@ print('Root Mean Squared Error: ' + str(rmse))
 
 r2 = r2_score(Y_testing_set, Y_predicted)
 print('R-squared: ' + str(r2))
+
+accuracy = predictive_model(X_testing_set, Y_testing_set)
+print('Accuracy: ' + str(accuracy))
 
 # Plot actual stock prices with the model's predicted stock prices for each ticker we found
 for ticker in tickers:
