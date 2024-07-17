@@ -9,7 +9,14 @@ from collections import defaultdict
 import numpy as np
 import requests
 import datetime
+import yfinance as yf  
+import pandas as pd  
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression 
+from sklearn.metrics import r2_score, mean_squared_error
+from sklearn.metrics import mean_squared_error 
 import matplotlib.pyplot as plt
+from datetime import datetime, timedelta
 
 # Load env variables from .env
 load_dotenv()
@@ -91,3 +98,65 @@ for ticker, average_sentiment in avg_sentiments.items():
         'ticker': ticker,
         'average_sentiment': average_sentiment
     })
+
+# Set up start and end dates
+start_date = (datetime.now() - timedelta(5)).strftime('%Y-%m-%d')
+end_date = datetime.now().strftime('%Y-%m-%d')
+
+# Get past stock price data
+stock_data = {}
+for ticker in avg_sentiments.keys():
+    ticker_data = yf.download(ticker, start_date, end_date)
+    stock_data[ticker] = ticker_data
+
+# Set up dataframe with stock price and related information
+data = []
+for ticker, prices in stock_data.items():
+    for date, row in prices.iterrows():
+        date_str = date.strftime('%Y-%m-%d')
+        if date_str in avg_sentiments:
+            data.append([
+                ticker,
+                date,
+                avg_sentiments[ticker]['compound'],
+                row['Price']
+            ])
+df = pd.DataFrame(data, columns=['ticker', 'date', 'compound', 'price'])
+
+# Set up dataset and target variable
+X = df[['compound']]
+Y = df['price']
+
+# Split up dataset intro training and testing set, train model
+X_training_set, X_testing_set, Y_training_set, Y_testing_set = train_test_split(X, Y, 0.2, 1)
+
+predictive_model = LinearRegression()
+predictive_model.fit(X_training_set, Y_training_set)
+
+# Calculate MSE, RMSE, and r^2 of predicted and actual stock price
+Y_predicted = predictive_model.predict(X_testing_set)
+
+mse = mean_squared_error(Y_testing_set, Y_predicted)
+print('Mean Squared Error: ' + str(mse))
+
+rmse = mean_squared_error(Y_testing_set, Y_predicted, squared=False)
+print('Root Mean Squared Error: ' + str(rmse))
+
+r2 = r2_score(Y_testing_set, Y_predicted)
+print('R-squared: ' + str(r2))
+
+# Plot actual stock prices with the model's predicted stock prices for each ticker we found
+for ticker in tickers:
+    # Get the actual and predicted values of the stock prices of each ticker
+    Y_testing_set_ticker = Y_testing_set[ticker]
+    Y_predicted_ticker = Y_predicted[ticker]
+    
+    # Create a plot for each ticker
+    plt.figure(figsize=(15, 10))
+    plt.plot(Y_testing_set_ticker.values, 'Actual Stock Price')
+    plt.plot(Y_predicted_ticker, 'Predicted Stock Price')
+    plt.title('Actual vs Predicted Stock Prices for ' + ticker)
+    plt.xlabel('Time in Days')
+    plt.ylabel('Stock Price')
+    plt.legend()
+    plt.show()
