@@ -100,30 +100,29 @@ for ticker, average_sentiment in avg_sentiments.items():
         'averageSentiment': average_sentiment
     })
 
-<<<<<<< HEAD
 # Set up start and end dates
 start_date = (datetime.now() - timedelta(5)).strftime('%Y-%m-%d')
 end_date = datetime.now().strftime('%Y-%m-%d')
 
 # Get past stock price data
-stock_data = {}
+stock_price = {}
 for ticker in avg_sentiments.keys():
     ticker_data = yf.download(ticker, start_date, end_date)
-    stock_data[ticker] = ticker_data
+    stock_price[ticker] = ticker_data
 
 # Set up dataframe with stock price and related information
-data = []
-for ticker, prices in stock_data.items():
+dataset = []
+for ticker, prices in stock_price.items():
     for date, row in prices.iterrows():
         date_str = date.strftime('%Y-%m-%d')
         if date_str in avg_sentiments:
-            data.append([
+            dataset.append([
                 ticker,
                 date,
                 avg_sentiments[ticker]['compound'],
                 row['Price']
             ])
-df = pd.DataFrame(data, columns=['ticker', 'date', 'compound', 'price'])
+df = pd.DataFrame(dataset, columns=['ticker', 'date', 'compound', 'price'])
 
 # Set up dataset and target variable
 X = df[['compound']]
@@ -162,7 +161,4 @@ for ticker in tickers:
     plt.ylabel('Stock Price')
     plt.legend()
     plt.show()
-=======
-# Plot compound sentiment scores
-# for ticker, sentiments in avg_sentiments.items():
->>>>>>> origin/main
+
