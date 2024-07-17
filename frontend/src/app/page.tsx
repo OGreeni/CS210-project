@@ -100,7 +100,6 @@ export default async function Home() {
 
 
     const topAverageSentiments = averageSentiments.slice(0, 5);
-    console.log(topAverageSentiments)
 
     const results: any[] = [];
 
@@ -157,7 +156,7 @@ export default async function Home() {
                                         return 0;
                                     } else {
                                         const prevPrice = result.stockPrices[i - 1];
-                                        const percentChange = ((stockPrice - prevPrice) / prevPrice) * 100;
+                                        const percentChange = ((stockPrice - prevPrice) / prevPrice) * 100 || 0;
                                         return percentChange;
                                     }
                                 }),
